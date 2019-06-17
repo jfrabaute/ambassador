@@ -178,3 +178,35 @@ config:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
+
+
+class XfccTest(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  forward_client_cert_details: SANITIZE_SET
+  set_current_client_cert_details:
+    subject: true
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.path.k8s}/server-name
+prefix: /server-name
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.url("server-name/"), expected=301)
+
+    def check(self):
+        assert self.results[0].headers["Server"] == [ "test-server" ]

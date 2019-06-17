@@ -35,6 +35,9 @@ class IRTLSContext(IRResource):
         "redirect_cleartext_from",
         "secret_namespacing",
         "sni",
+        "verify_certificate_hash",
+        "verify_certificate_spki",
+        "verify_subject_alt_name",
     }
 
     name: str
@@ -49,6 +52,9 @@ class IRTLSContext(IRResource):
     secret_namespacing: Optional[bool]
     secret_info: dict
     sni: Optional[str]
+    verify_certificate_hash: Optional[List[str]]
+    verify_certificate_spki: Optional[List[str]]
+    verify_subject_alt_name: Optional[List[str]]
 
     is_fallback: bool
 

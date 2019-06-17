@@ -104,12 +104,18 @@ class V2TLSContext(Dict):
 
         params[key] = value
 
-    def update_validation(self, key: str, value: str) -> None:
+    def update_validation_filename(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
 
         src: EnvoyCoreSource = { 'filename': value }
         validation[key] = src
+
+    def update_validation_value(self, key: str, value: str) -> None:
+        empty_context: EnvoyValidationContext = {}
+        validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
+
+        validation[key] = value
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
@@ -122,10 +128,20 @@ class V2TLSContext(Dict):
         for secretinfokey, handler, hkey in [
             ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
             ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ( 'cacert_chain_file', self.update_validation_filename, 'trusted_ca' ),
         ]:
             if secretinfokey in ctx['secret_info']:
                 handler(hkey, ctx['secret_info'][secretinfokey])
+
+        for validationkey, handler, hkey in [
+            ( 'verify_certificate_spki', self.update_validation_value, 'verify_certificate_spki' ),
+            ( 'verify_certificate_hash', self.update_validation_value, 'verify_certificate_hash' ),
+            ( 'verify_subject_alt_name', self.update_validation_value, 'verify_subject_alt_name' ),
+        ]:
+            value = ctx.get(validationkey, None)
+
+            if value is not None:
+                handler(hkey, value)
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
