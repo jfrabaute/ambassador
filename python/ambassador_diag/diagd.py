@@ -1379,7 +1379,7 @@ class AmbassadorEventWatcher(threading.Thread):
         # Try to validate the Envoy config. Short circuit and fall through
         # immediately on concrete success or failure, and retry (up to the
         # limit) on timeout.
-        timeout = 5
+        timeout = 15
         for retry in range(retries):
             try:
                 odict['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
